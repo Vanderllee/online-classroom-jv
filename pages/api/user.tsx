@@ -11,23 +11,40 @@ interface SuccessResponseType {
   email: string,
   cellphone: string,
   teacher: true,
-  coins: 1,
+  coins: boolean,
   courses: string[],
-  available_hours: object,
+  available_hours: Record<string, unknown>[],
   available_locations: string[],
-  reviews: object[],
-  appointments: object[],
+  reviews: Record<string, unknown>[],
+  appointments: Record<string, unknown>[],
 }
 
 export default async (
     req: NextApiRequest, 
     res: NextApiResponse<ErrorResponseType | SuccessResponseType>
-)
-: Promise<void> => {
+): Promise<void> => {
     
     if(req.method === 'POST') {
         
-        const {name, cellphone, email, teacher, courses, available_hours, available_locations} = req.body;
+        const {
+            name, 
+            cellphone, 
+            email, 
+            teacher, 
+            courses, 
+            available_hours, 
+            available_locations
+        }: {
+            name: string,
+            email: string,
+            cellphone: string,
+            teacher: true,
+            coins: boolean,
+            courses: string[],
+            available_hours: Record<string, unknown>[],
+            available_locations: string[],
+
+        } = req.body;
         
         if(!teacher)  {
 
@@ -55,6 +72,14 @@ export default async (
 
     
         const { db } = await connect();
+
+        const lowerCaseEmail = email.toLowerCase();
+        const emailAlreadyExists = await db.collection('users').findOne({email:lowerCaseEmail});
+
+        if(emailAlreadyExists) {
+            res.status(400).json({error:`Email ${lowerCaseEmail} already exists.`});
+            return;
+        }
         
         const response = await db.collection('users').insertOne({
            name,
@@ -71,29 +96,10 @@ export default async (
 
         res.status(200).json(response.ops[0]);
 
-    } else if(req.method === 'GET') {
-
-         const email = req.body.email;
-
-         if(!email) {
-             res.status(400).json({error: 'Missing email on request body.'});
-             return;
-         } 
-
-        const { db } = await connect();
-
-        const response = await db.collection('users').findOne({email})
-
-        if(!response) {
-            res.status(400).json({error: 'Email not found.'});
-            return;
-        }
-
-        res.status(200).json(response);
-
-
     } else {
         res.status(400).json({error: 'Wrong request method'});
     }
+
+    
 }
 

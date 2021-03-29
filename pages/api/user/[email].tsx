@@ -1,6 +1,5 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import  { ObjectID } from 'mongodb';
-import connect from '../../utils/database';
+import connect from '../../../utils/database';
 
 interface ErrorResponseType {
     error: string;
@@ -12,35 +11,34 @@ interface SuccessResponseType {
   email: string,
   cellphone: string,
   teacher: true,
-  coins: 1,
+  coins: boolean,
   courses: string[],
-  available_hours: object,
+  available_hours: Record<string, unknown>[],
   available_locations: string[],
-  reviews: object[],
-  appointments: object[],
+  reviews: Record<string, unknown>[],
+  appointments: Record<string, unknown>[],
 }
 
 export default async (
     req: NextApiRequest, 
     res: NextApiResponse<ErrorResponseType | SuccessResponseType>
-)
-: Promise<void> => {
+): Promise<void> => {
     
-     if(req.method === 'GET') {
+    if(req.method === 'GET') {
 
-         const { id } = req.body;
+         const {email} = req.query; 
 
-         if(!id) {
-             res.status(400).json({error: 'Missing teacher ID on request body.'});
+         if(!email) {
+             res.status(400).json({error: 'Missing email on request body.'});
              return;
          } 
 
         const { db } = await connect();
 
-        const response = await db.collection('users').findOne({ _id:new ObjectID(id) });
+        const response = await db.collection('users').findOne({email})
 
         if(!response) {
-            res.status(400).json({error: 'Teacher ID not found.'});
+            res.status(400).json({error: 'Email not found.'});
             return;
         }
 
@@ -50,7 +48,5 @@ export default async (
     } else {
         res.status(400).json({error: 'Wrong request method'});
     }
-
-    
 }
 
