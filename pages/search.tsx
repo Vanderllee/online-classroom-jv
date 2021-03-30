@@ -2,7 +2,7 @@ import { NextPage } from 'next'
 import { signIn, signOut, useSession } from 'next-auth/client'
 import Nav from '../components/nav';
 
-const AppPage: NextPage = () => {
+const SearchPage: NextPage = () => {
 
   const [session, loading] = useSession();
 
@@ -12,7 +12,7 @@ const AppPage: NextPage = () => {
         <Nav />
 
         <h1>
-            Welcome to AppPage!
+            Welcome to Search!
         </h1>
 
         {!session && (
@@ -41,4 +41,4 @@ const AppPage: NextPage = () => {
   );
 };
 
-export default AppPage;
+export default SearchPage;
