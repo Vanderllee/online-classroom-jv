@@ -1,6 +1,14 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import connect from '../../utils/database';
 
+interface IAvailableHours {
+    monday: number[];
+    tuesday: number[];
+    wednesday: number[];
+    thursday: number[];
+    friday: number[];
+}
+
 interface ErrorResponseType {
     error: string;
 }
@@ -13,7 +21,7 @@ interface SuccessResponseType {
   teacher: true,
   coins: boolean,
   courses: string[],
-  available_hours: Record<string, unknown>[],
+  available_hours: IAvailableHours,
   available_locations: string[],
   reviews: Record<string, unknown>[],
   appointments: Record<string, unknown>[],
@@ -38,13 +46,29 @@ export default async (
             name: string,
             email: string,
             cellphone: string,
-            teacher: true,
-            coins: boolean,
+            teacher: boolean,
             courses: string[],
-            available_hours: Record<string, unknown>[],
+            available_hours: IAvailableHours,
             available_locations: string[],
 
         } = req.body;
+
+      
+        let invalidHour = false;
+
+        for(const weekdays in available_hours) {
+            available_hours[weekdays].forEach((hour: number) => {
+                if(hour < 7 || hour > 20) {
+                    invalidHour = true;
+                    return;
+                }
+            })
+        }
+
+        if(invalidHour) {
+            res.status(400).json({error:'You cannot teach between 20:00 and 7:00'});
+            return;
+        }
         
         if(!teacher)  {
 
